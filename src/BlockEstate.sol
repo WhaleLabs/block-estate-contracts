@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 
 import "./interface/IERC6551Registry.sol";
 import "./Rentals.sol";
+import "./ProjectAccount.sol";
 
 
 contract BlockEstate is ERC721, Ownable {
@@ -53,13 +54,15 @@ contract BlockEstate is ERC721, Ownable {
             address(this),
             tokenId,
             0,
-            ""
+            abi.encodeWithSelector(ProjectAccount(payable(0)).initialize.selector,
+            _name, _symbol, 18)
         );
         projectsAccounts[tokenId] = projectAccount;
 
         BeaconProxy rentalCollection = new BeaconProxy(proxyImplementation,
             abi.encodeWithSelector(Rentals(address(0)).initialize.selector, 
-            _name, _symbol, address(paymentToken), address(this), _rentalPriceperDay, projectAccount));
+            _name, _symbol, address(paymentToken), address(this), _rentalPriceperDay, projectAccount)
+        );
 
         projectsRentalsCollections[tokenId] = address(rentalCollection);
 

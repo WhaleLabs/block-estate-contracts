@@ -5,19 +5,47 @@ import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/interfaces/IERC1271.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+
+import "@upgradeable/contracts/proxy/utils/Initializable.sol";
 
 import "./lib/ERC404.sol";
 import "./interface/IERC6551Account.sol";
 
 
 
-contract ProjectAccount is IERC165, IERC1271, IERC6551Account, ERC404 {
+contract ProjectAccount is IERC165, IERC1271, IERC6551Account, ERC404, Initializable {
+
+    //IMPORTANT: The implementation used for ERC404 doesn't have the constructor function. Instead, we are using the initializer function from the Initializable contract.
+    
     receive() external payable {}
 
-    constructor
+    constructor() {
+        _disableInitializers();
+    }
 
-    function tokenURI(uint256 id_) public view override returns (string memory) {
-        return ""; // TODO
+    
+    function initialize(string memory name_, string memory symbol_, uint8 decimals_) initializer public {
+        name = name_;
+        symbol = symbol_;
+
+        if (decimals_ < 18) {
+        revert DecimalsTooLow();
+        }
+
+        decimals = decimals_;
+        units = 10 ** decimals;
+
+        // EIP-2612 initialization
+        _INITIAL_CHAIN_ID = block.chainid;
+        _INITIAL_DOMAIN_SEPARATOR = _computeDomainSeparator();
+    }
+
+
+    function tokenURI(uint256 _tokenId) public view virtual override returns (string memory) { //TODO
+
+        string memory baseURI = "";
+        return bytes(baseURI).length > 0 ? string.concat(baseURI, Strings.toString(_tokenId)) : "";
     }
 
 

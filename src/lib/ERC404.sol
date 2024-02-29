@@ -38,10 +38,10 @@ abstract contract ERC404 is IERC404 {
   string public symbol;
 
   /// @dev Decimals for ERC-20 representation
-  uint8 public immutable decimals;
+  uint8 public decimals;
 
   /// @dev Units for ERC-20 representation
-  uint256 public immutable units;
+  uint256 public units;
 
   /// @dev Total supply in ERC-20 representation
   uint256 public totalSupply;
@@ -51,10 +51,10 @@ abstract contract ERC404 is IERC404 {
   uint256 public minted;
 
   /// @dev Initial chain id for EIP-2612 support
-  uint256 internal immutable _INITIAL_CHAIN_ID;
+  uint256 internal _INITIAL_CHAIN_ID;
 
   /// @dev Initial domain separator for EIP-2612 support
-  bytes32 internal immutable _INITIAL_DOMAIN_SEPARATOR;
+  bytes32 internal _INITIAL_DOMAIN_SEPARATOR;
 
   /// @dev Balance of user in ERC-20 representation
   mapping(address => uint256) public balanceOf;
@@ -89,21 +89,21 @@ abstract contract ERC404 is IERC404 {
   /// @dev Constant for token id encoding
   uint256 public constant ID_ENCODING_PREFIX = 1 << 255;
 
-  constructor(string memory name_, string memory symbol_, uint8 decimals_) {
-    name = name_;
-    symbol = symbol_;
+  // constructor(string memory name_, string memory symbol_, uint8 decimals_) {
+  //   name = name_;
+  //   symbol = symbol_;
 
-    if (decimals_ < 18) {
-      revert DecimalsTooLow();
-    }
+  //   if (decimals_ < 18) {
+  //     revert DecimalsTooLow();
+  //   }
 
-    decimals = decimals_;
-    units = 10 ** decimals;
+  //   decimals = decimals_;
+  //   units = 10 ** decimals;
 
-    // EIP-2612 initialization
-    _INITIAL_CHAIN_ID = block.chainid;
-    _INITIAL_DOMAIN_SEPARATOR = _computeDomainSeparator();
-  }
+  //   //EIP-2612 initialization
+  //   _INITIAL_CHAIN_ID = block.chainid;
+  //   _INITIAL_DOMAIN_SEPARATOR = _computeDomainSeparator();
+  // }
 
   /// @notice Function to find owner of a given ERC-721 token
   function ownerOf(
