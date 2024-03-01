@@ -1,0 +1,1 @@
+forge script ./Deploy.s.sol --rpc-url $XDC_RPC_URL --broadcast --verify -vvvv --legacy
