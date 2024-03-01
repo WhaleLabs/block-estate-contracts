@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/interfaces/IERC1271.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "@upgradeable/contracts/proxy/utils/Initializable.sol";
 
@@ -20,12 +21,26 @@ contract ProjectAccount is IERC165, IERC1271, IERC6551Account, ERC404, Initializ
     
     receive() external payable {}
 
+    IERC20 public paymentToken;
+    address public manager;
+    uint256 public totalAmountToRaise;
+    uint256 public deadline;
+
+    bool public successfulSale = false;
+    bool public raisingFunds = true;
+
+    modifier onlyManager() {
+        require(msg.sender == manager, "Not manager");
+        _;
+    }
+
     constructor() {
         _disableInitializers();
     }
 
     
-    function initialize(string memory name_, string memory symbol_, uint8 decimals_) initializer public {
+    function initialize(string memory name_, string memory symbol_, uint8 decimals_, 
+            uint256 _totalSupply, uint256 _totalAmountToRaise, address _paymentToken, uint256 _deadline) initializer public {
         name = name_;
         symbol = symbol_;
 
@@ -39,6 +54,62 @@ contract ProjectAccount is IERC165, IERC1271, IERC6551Account, ERC404, Initializ
         // EIP-2612 initialization
         _INITIAL_CHAIN_ID = block.chainid;
         _INITIAL_DOMAIN_SEPARATOR = _computeDomainSeparator();
+
+        paymentToken = IERC20(_paymentToken);
+        totalAmountToRaise = _totalAmountToRaise;
+        deadline = _deadline;
+        manager = msg.sender;
+
+        _mintERC20(address(this), _totalSupply);
+    }
+
+    function engage(address _to, uint256 _amount) public {
+        require(_amount <= totalAmountToRaise, "Not enough funds");
+        require(block.timestamp < deadline, "Deadline reached");
+        require(raisingFunds, "Raising funds is not active");
+
+        uint256 price = (_amount/totalSupply) * totalAmountToRaise;
+        bool success = paymentToken.transferFrom(msg.sender, address(this), price);
+        if(!success) {
+            revert("Transfer failed");
+        }
+        _transferERC20(address(this), _to, _amount);
+    }
+
+    function managerWithdraw(address _to, uint256 _amount) public onlyManager {
+        require(block.timestamp > deadline, "Deadline not reached");
+        require(successfulSale, "Sale was not successful");
+
+        paymentToken.transferFrom(address(this), _to, _amount);
+    }
+
+    function setFailedSale() public onlyManager {
+        successfulSale = false;
+    }
+
+    function setSuccessfulSale() public onlyManager {
+        successfulSale = true;
+    }
+
+    function retriveTokensAfterFailedSale(uint256 _amount) public {
+        require(block.timestamp > deadline, "Deadline not reached");
+        require(!successfulSale, "Sale was successful");
+        require(!raisingFunds, "Raising funds is active");
+        require(erc20BalanceOf(address(this)) >= _amount, "Not enough funds");
+
+        _transferERC20(msg.sender, address(this), _amount);
+
+        uint256 price = (_amount/totalSupply) * totalAmountToRaise;
+        paymentToken.transferFrom(address(this), msg.sender, price);
+
+    }
+
+    function stopRaisingFunds() public onlyManager {
+        raisingFunds = false;
+    }
+
+    function startRaisingFunds() public onlyManager {
+        raisingFunds = true;
     }
 
 
