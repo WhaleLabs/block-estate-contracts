@@ -41,7 +41,9 @@ contract BlockEstate is ERC721, Ownable {
 
     }
 
-    function mintProject(string calldata _name, string calldata _symbol, uint256 _rentalPriceperDay) public onlyOwner() returns (uint256){
+    function mintProject(string calldata _name, string calldata _symbol, 
+            uint256 _rentalPriceperDay, uint256 _totalSupply, uint256 _totalAmountToRaise, uint256 _deadline) public onlyOwner() returns (uint256){
+        
         uint256 tokenId = projectsCounter;
 
         projectsCounter++;
@@ -55,9 +57,15 @@ contract BlockEstate is ERC721, Ownable {
             tokenId,
             0,
             abi.encodeWithSelector(ProjectAccount(payable(0)).initialize.selector,
-            _name, _symbol, 18)
+            _totalSupply, address(this))
         );
+        ProjectAccount(payable(projectAccount)).setPaymentToken(address(paymentToken));
+        ProjectAccount(payable(projectAccount)).setTotalAmountToRaise(_totalAmountToRaise);
+        ProjectAccount(payable(projectAccount)).setDeadline(_deadline);
+        ProjectAccount(payable(projectAccount)).setName(_name);
+
         projectsAccounts[tokenId] = projectAccount;
+
 
         BeaconProxy rentalCollection = new BeaconProxy(proxyImplementation,
             abi.encodeWithSelector(Rentals(address(0)).initialize.selector, 
@@ -68,6 +76,14 @@ contract BlockEstate is ERC721, Ownable {
 
         emit ProjectMinted(tokenId, projectAccount, address(rentalCollection));
         return tokenId;
+    }
+
+    function setRentalAvailable(uint256 _tokenId) public onlyOwner() {
+        Rentals(projectsRentalsCollections[_tokenId]).setAvailableToRent();
+    }
+
+    function setRentalUnavailable(uint256 _tokenId) public onlyOwner() {
+        Rentals(projectsRentalsCollections[_tokenId]).setUnavailableToRent();
     }
 
 }

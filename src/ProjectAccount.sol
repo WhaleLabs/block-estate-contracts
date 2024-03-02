@@ -13,6 +13,8 @@ import "@upgradeable/contracts/proxy/utils/Initializable.sol";
 import "./lib/ERC404.sol";
 import "./interface/IERC6551Account.sol";
 
+import "forge-std/console.sol";
+
 
 
 contract ProjectAccount is IERC165, IERC1271, IERC6551Account, ERC404, Initializable {
@@ -39,40 +41,41 @@ contract ProjectAccount is IERC165, IERC1271, IERC6551Account, ERC404, Initializ
     }
 
     
-    function initialize(string memory name_, string memory symbol_, uint8 decimals_, 
-            uint256 _totalSupply, uint256 _totalAmountToRaise, address _paymentToken, uint256 _deadline) initializer public {
-        name = name_;
-        symbol = symbol_;
-
-        if (decimals_ < 18) {
-        revert DecimalsTooLow();
-        }
-
-        decimals = decimals_;
+    function initialize(uint256 _totalSupply, address _manager) initializer public {
+        decimals = 18;
         units = 10 ** decimals;
 
         // EIP-2612 initialization
         _INITIAL_CHAIN_ID = block.chainid;
         _INITIAL_DOMAIN_SEPARATOR = _computeDomainSeparator();
-
-        paymentToken = IERC20(_paymentToken);
-        totalAmountToRaise = _totalAmountToRaise;
-        deadline = _deadline;
-        manager = msg.sender;
+        manager = _manager;
 
         _mintERC20(address(this), _totalSupply);
+    }
+
+    function setPaymentToken(address _paymentToken) public onlyManager {
+        paymentToken = IERC20(_paymentToken);
+    }
+    function setTotalAmountToRaise(uint256 _totalAmountToRaise) public onlyManager {
+        totalAmountToRaise = _totalAmountToRaise;
+    }
+
+    function setDeadline(uint256 _deadline) public onlyManager {
+        deadline = _deadline;
+    }
+
+    function setName(string memory _name) public onlyManager {
+        name = _name;
+        symbol = _name;
     }
 
     function engage(address _to, uint256 _amount) public {
         require(_amount <= totalAmountToRaise, "Not enough funds");
         require(block.timestamp < deadline, "Deadline reached");
-        require(raisingFunds, "Raising funds is not active");
 
         uint256 price = (_amount/totalSupply) * totalAmountToRaise;
-        bool success = paymentToken.transferFrom(msg.sender, address(this), price);
-        if(!success) {
-            revert("Transfer failed");
-        }
+        paymentToken.transfer(address(this), price);
+
         _transferERC20(address(this), _to, _amount);
     }
 

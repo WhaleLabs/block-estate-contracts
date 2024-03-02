@@ -23,7 +23,7 @@ contract Rentals is ERC721Upgradeable, OwnableUpgradeable {
     uint256 public rentalsCounter;
     uint256 public rentalPriceperDay;
 
-    bool public availableToRent;
+    bool public availableToRent = true;
 
     //Rentals logic
     mapping(uint256 => uint256) public startDates;
@@ -65,7 +65,6 @@ contract Rentals is ERC721Upgradeable, OwnableUpgradeable {
         projectAccount = ProjectAccount(payable(_projectAccount));
         
         __ERC721_init(_name,_symbol);
-        transferOwnership(_msgSender());
         
         INITIAL_CHAIN_ID = block.chainid;
         INITIAL_DOMAIN_SEPARATOR = computeDomainSeparator();
@@ -76,7 +75,7 @@ contract Rentals is ERC721Upgradeable, OwnableUpgradeable {
     function rentProperty(address _to, uint256 _startDate, uint256 _endDate) public returns (uint256) {
         require(_startDate < _endDate, "Rentals: start date must be before end date");
         require(_startDate > block.timestamp, "Rentals: start date must be in the future");
-        require(availableToRent, "Rentals: property is not available to rent");
+        //require(availableToRent, "Rentals: property is not available to rent");
         for(uint256 i = _startDate; i <= _endDate; i += 1){
             if(!availableDays[i]) {
                 revert("Rentals: date already rented");

@@ -34,6 +34,15 @@ contract Deploy is Script {
         blockEstate = new BlockEstate(address(registry), address(projectAccountImplementation), 
                 address(paymentToken), address(beacon));
 
+        paymentToken.mint(msg.sender, 10000000000000 ether);
+        blockEstate.mintProject("PROJECT1", "PRJ1", 100 ether, 20 ether, 500000 ether, block.timestamp + 30 days);
+
+        blockEstate.mintProject("PROJECT2", "PRJ2", 100 ether, 20 ether, 500000 ether, block.timestamp + 30 days);
+        blockEstate.mintProject("PROJECT3", "PRJ3", 100 ether, 20 ether, 500000 ether, block.timestamp + 30 days);
+        blockEstate.mintProject("PROJECT4", "PRJ4", 100 ether, 20 ether, 500000 ether, block.timestamp + 30 days);
+        blockEstate.mintProject("PROJECT5", "PRJ5", 100 ether, 20 ether, 500000 ether, block.timestamp + 30 days);
+        blockEstate.mintProject("PROJECT6", "PRJ6", 100 ether, 20 ether, 500000 ether, block.timestamp + 30 days);
+
         console.log("BlockEstate deployed at: ", address(blockEstate));
         console.log("Payment Token deployed at: ", address(paymentToken));
         console.log("ERC6551Registry deployed at: ", address(registry));
