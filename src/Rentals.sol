@@ -74,14 +74,14 @@ contract Rentals is ERC721Upgradeable, OwnableUpgradeable {
 
     function rentProperty(address _to, uint256 _startDate, uint256 _endDate) public returns (uint256) {
         require(_startDate < _endDate, "Rentals: start date must be before end date");
-        require(_startDate > block.timestamp, "Rentals: start date must be in the future");
+        //require(_startDate > block.timestamp, "Rentals: start date must be in the future");
         //require(availableToRent, "Rentals: property is not available to rent");
-        for(uint256 i = _startDate; i <= _endDate; i += 1){
-            if(!availableDays[i]) {
-                revert("Rentals: date already rented");
-            }
-            availableDays[i] = false;
-        }
+        // for(uint256 i = _startDate; i <= _endDate; i += 1){
+        //     if(!availableDays[i]) {
+        //         revert("Rentals: date already rented");
+        //     }
+        //     availableDays[i] = false;
+        // }
 
         uint256 tokenId = rentalsCounter;
         rentalsCounter++;

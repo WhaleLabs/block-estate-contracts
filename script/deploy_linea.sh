@@ -1,0 +1,1 @@
+forge script ./Deploy.s.sol --rpc-url $LINEA_RPC_URL --broadcast -vvvv --legacy
